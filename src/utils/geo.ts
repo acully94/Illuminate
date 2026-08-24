@@ -33,3 +33,11 @@ export function offsetMeters(origin: LatLng, north: number, east: number): LatLn
     (east / (EARTH_RADIUS_METERS * Math.cos(toRadians(origin.latitude)))) * (180 / Math.PI);
   return { latitude, longitude };
 }
+
+/** Inverse of offsetMeters — how far north/east `point` is from `origin`, in metres. */
+export function northEastMetersFrom(origin: LatLng, point: LatLng): { north: number; east: number } {
+  const north = toRadians(point.latitude - origin.latitude) * EARTH_RADIUS_METERS;
+  const east =
+    toRadians(point.longitude - origin.longitude) * EARTH_RADIUS_METERS * Math.cos(toRadians(origin.latitude));
+  return { north, east };
+}

@@ -1,23 +1,27 @@
 import { routingProvider } from '@/modules/routing';
-import type { LatLng, RouteMode, ScoredRoute } from '@/types/route';
+import type { RawRoute } from '@/modules/routing';
+import type { RouteMode, RouteRequest, ScoredRoute } from '@/types/route';
 import { enrichRoute } from './enrichRoute';
 import { scoreSegments } from './scoreRoute';
 
 const ALTERNATIVES_PER_REQUEST = 3;
 
 /**
- * Requests loop route alternatives, scores each one, then labels them
- * fastest / safest / balanced. Route engines don't have a "safe mode" —
- * this re-scoring and selection step is what actually produces it.
+ * Requests route alternatives (loop or point-to-point), scores each one, then
+ * labels them fastest / safest / balanced. Route engines don't have a "safe
+ * mode" — this re-scoring and selection step is what actually produces it.
  */
-export async function buildScoredRoutes(
-  origin: LatLng,
-  distanceMeters: number,
-): Promise<Record<RouteMode, ScoredRoute>> {
-  const rawRoutes = await routingProvider.getLoopAlternatives(
-    { origin, distanceMeters },
-    ALTERNATIVES_PER_REQUEST,
-  );
+export async function buildScoredRoutes(request: RouteRequest): Promise<Record<RouteMode, ScoredRoute>> {
+  const rawRoutes: RawRoute[] =
+    request.kind === 'loop'
+      ? await routingProvider.getLoopAlternatives(
+          { origin: request.origin, distanceMeters: request.distanceMeters },
+          ALTERNATIVES_PER_REQUEST,
+        )
+      : await routingProvider.getPointToPointAlternatives(
+          { origin: request.origin, destination: request.destination },
+          ALTERNATIVES_PER_REQUEST,
+        );
 
   const scored = await Promise.all(
     rawRoutes.map(async (raw) => {

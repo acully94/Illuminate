@@ -5,6 +5,11 @@ export type LoopRouteRequest = {
   distanceMeters: number;
 };
 
+export type PointToPointRouteRequest = {
+  origin: LatLng;
+  destination: LatLng;
+};
+
 /** Raw route geometry from a routing engine — no safety scoring attached yet. */
 export type RawRoute = {
   id: string;
@@ -22,8 +27,10 @@ export type RawRoute = {
  * on most engines — `getLoopAlternatives` is expected to generate candidate
  * waypoints/variations itself and return several raw routes for the caller
  * to score and choose between, rather than asking the engine for one
- * "correct" answer.
+ * "correct" answer. `getPointToPointAlternatives` is the same idea for
+ * routes between two distinct points.
  */
 export interface RoutingProvider {
   getLoopAlternatives(request: LoopRouteRequest, count: number): Promise<RawRoute[]>;
+  getPointToPointAlternatives(request: PointToPointRouteRequest, count: number): Promise<RawRoute[]>;
 }

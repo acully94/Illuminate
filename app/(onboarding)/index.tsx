@@ -8,8 +8,8 @@ export default function Welcome() {
       <View style={styles.content}>
         <Text style={styles.title}>Illuminate</Text>
         <Text style={styles.subtitle}>
-          Walking routes scored for lighting and safety — never made up, only what the data
-          actually shows.
+          Walking and running routes scored for lighting and safety, based on the data that's
+          actually available for each area.
         </Text>
       </View>
       <Link href="/(onboarding)/permissions" style={styles.cta}>

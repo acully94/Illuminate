@@ -5,11 +5,9 @@ export type LatLng = {
 
 export type RouteMode = 'fastest' | 'balanced' | 'safest';
 
-export type RouteRequest = {
-  origin: LatLng;
-  distanceMeters: number;
-  mode: RouteMode;
-};
+export type RouteRequest =
+  | { kind: 'loop'; origin: LatLng; distanceMeters: number }
+  | { kind: 'point-to-point'; origin: LatLng; destination: LatLng };
 
 /** A single stretch of a route, annotated with whatever safety signals are available for it. */
 export type RouteSegment = {

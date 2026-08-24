@@ -1,20 +1,21 @@
 import { useEffect, useState } from 'react';
 import { buildScoredRoutes } from '@/modules/routeScoring';
-import type { LatLng, RouteMode, ScoredRoute } from '@/types/route';
+import type { RouteMode, RouteRequest, ScoredRoute } from '@/types/route';
 
 type State =
   | { status: 'loading' }
   | { status: 'error'; message: string }
   | { status: 'ready'; routes: Record<RouteMode, ScoredRoute> };
 
-export function useScoredRoutes(origin: LatLng, distanceMeters: number): State {
+export function useScoredRoutes(request: RouteRequest): State {
   const [state, setState] = useState<State>({ status: 'loading' });
+  const requestKey = JSON.stringify(request);
 
   useEffect(() => {
     let cancelled = false;
     setState({ status: 'loading' });
 
-    buildScoredRoutes(origin, distanceMeters)
+    buildScoredRoutes(request)
       .then((routes) => {
         if (!cancelled) setState({ status: 'ready', routes });
       })
@@ -30,7 +31,8 @@ export function useScoredRoutes(origin: LatLng, distanceMeters: number): State {
     return () => {
       cancelled = true;
     };
-  }, [origin.latitude, origin.longitude, distanceMeters]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestKey]);
 
   return state;
 }

@@ -2,19 +2,35 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, ScrollView, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteCard } from '@/components/RouteCard';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { useScoredRoutes } from '@/hooks/useScoredRoutes';
-import type { RouteMode } from '@/types/route';
+import type { RouteMode, RouteRequest } from '@/types/route';
 
 export default function Results() {
-  const { lat, lng, distance } = useLocalSearchParams<{ lat: string; lng: string; distance: string }>();
-  const origin = { latitude: Number(lat), longitude: Number(lng) };
-  const distanceMeters = Number(distance);
+  const params = useLocalSearchParams<{
+    kind: string;
+    lat: string;
+    lng: string;
+    distance?: string;
+    destLat?: string;
+    destLng?: string;
+  }>();
 
-  const state = useScoredRoutes(origin, distanceMeters);
+  const origin = { latitude: Number(params.lat), longitude: Number(params.lng) };
+  const request: RouteRequest =
+    params.kind === 'point-to-point'
+      ? {
+          kind: 'point-to-point',
+          origin,
+          destination: { latitude: Number(params.destLat), longitude: Number(params.destLng) },
+        }
+      : { kind: 'loop', origin, distanceMeters: Number(params.distance) };
+
+  const state = useScoredRoutes(request);
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Route options</Text>
+      <ScreenHeader title="Route options" />
 
       {state.status === 'loading' && (
         <ActivityIndicator style={styles.loading} size="large" color="#1B3A5C" />
@@ -30,8 +46,8 @@ export default function Results() {
               route={state.routes[mode]}
               onPress={() =>
                 router.push({
-                  pathname: '/run/[mode]',
-                  params: { mode, lat, lng, distance },
+                  pathname: '/route/[mode]',
+                  params: { mode, ...params },
                 })
               }
             />
@@ -48,11 +64,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F7F7F7',
     padding: 24,
     gap: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#1B3A5C',
   },
   loading: {
     marginTop: 40,

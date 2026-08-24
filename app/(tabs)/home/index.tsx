@@ -5,10 +5,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function Home() {
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.greeting}>Where do you want to walk?</Text>
+      <View style={styles.topRow}>
+        <Text style={styles.greeting}>Where do you want to go?</Text>
+        <Pressable style={styles.settingsButton} onPress={() => router.push('/settings')}>
+          <Text style={styles.settingsButtonText}>Settings</Text>
+        </Pressable>
+      </View>
       <Text style={styles.subtitle}>
-        Plan a loop route scored for lighting and area safety, using the data that's actually
-        available for it.
+        Plan a walking or running route scored for lighting and area safety, using the data
+        that's actually available for it.
       </Text>
 
       <Pressable style={styles.cta} onPress={() => router.push('/planner')}>
@@ -25,11 +30,29 @@ const styles = StyleSheet.create({
     padding: 24,
     gap: 12,
   },
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginTop: 16,
+  },
   greeting: {
+    flex: 1,
     fontSize: 26,
     fontWeight: '800',
     color: '#1B3A5C',
-    marginTop: 16,
+  },
+  settingsButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#E2E2E2',
+  },
+  settingsButtonText: {
+    color: '#1B3A5C',
+    fontWeight: '600',
+    fontSize: 13,
   },
   subtitle: {
     fontSize: 15,
