@@ -13,6 +13,25 @@ function segmentColor(segment: RouteSegment): string {
   return SEGMENT_COLORS.unknown;
 }
 
+/** Merges consecutive same-color segments into one polyline each — real routing
+ * geometry can carry hundreds of tiny segments, and rendering one Polyline per
+ * segment doesn't scale the way it did for the ~20-point mock loops. */
+function toColoredPolylines(segments: RouteSegment[]): { id: string; color: string; path: LatLng[] }[] {
+  const polylines: { id: string; color: string; path: LatLng[] }[] = [];
+
+  for (const segment of segments) {
+    const color = segmentColor(segment);
+    const current = polylines[polylines.length - 1];
+    if (current && current.color === color) {
+      current.path.push(...segment.path.slice(1));
+    } else {
+      polylines.push({ id: segment.id, color, path: [...segment.path] });
+    }
+  }
+
+  return polylines;
+}
+
 export function RouteMapPreview({ origin, segments }: { origin: LatLng; segments: RouteSegment[] }) {
   if (Platform.OS === 'web') {
     // react-native-maps has no web target — map rendering SDK for web is still open (Section 7).
@@ -25,6 +44,7 @@ export function RouteMapPreview({ origin, segments }: { origin: LatLng; segments
 
   const MapView = require('react-native-maps').default;
   const { Polyline } = require('react-native-maps');
+  const polylines = toColoredPolylines(segments);
 
   return (
     <MapView
@@ -36,8 +56,13 @@ export function RouteMapPreview({ origin, segments }: { origin: LatLng; segments
         longitudeDelta: 0.02,
       }}
     >
-      {segments.map((segment) => (
-        <Polyline key={segment.id} coordinates={segment.path} strokeColor={segmentColor(segment)} strokeWidth={4} />
+      {polylines.map((polyline) => (
+        <Polyline
+          key={polyline.id}
+          coordinates={polyline.path}
+          strokeColor={polyline.color}
+          strokeWidth={4}
+        />
       ))}
     </MapView>
   );
