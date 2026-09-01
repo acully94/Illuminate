@@ -41,3 +41,32 @@ export function northEastMetersFrom(origin: LatLng, point: LatLng): { north: num
     toRadians(point.longitude - origin.longitude) * EARTH_RADIUS_METERS * Math.cos(toRadians(origin.latitude));
   return { north, east };
 }
+
+/** Shortest distance in metres from `point` to the line segment a→b (flat-earth projection, fine at this scale). */
+export function distanceToSegmentMeters(point: LatLng, a: LatLng, b: LatLng): number {
+  const p = northEastMetersFrom(a, point);
+  const ab = northEastMetersFrom(a, b);
+  const abLengthSq = ab.north ** 2 + ab.east ** 2;
+
+  if (abLengthSq === 0) return Math.sqrt(p.north ** 2 + p.east ** 2);
+
+  const t = Math.max(0, Math.min(1, (p.north * ab.north + p.east * ab.east) / abLengthSq));
+  const dNorth = p.north - ab.north * t;
+  const dEast = p.east - ab.east * t;
+  return Math.sqrt(dNorth ** 2 + dEast ** 2);
+}
+
+/** Bounding box around a set of points, padded outward by the given metres. */
+export function paddedBoundingBox(
+  points: LatLng[],
+  paddingMeters: number,
+): { north: number; south: number; east: number; west: number } {
+  const north = Math.max(...points.map((p) => p.latitude));
+  const south = Math.min(...points.map((p) => p.latitude));
+  const east = Math.max(...points.map((p) => p.longitude));
+  const west = Math.min(...points.map((p) => p.longitude));
+
+  const ne = offsetMeters({ latitude: north, longitude: east }, paddingMeters, paddingMeters);
+  const sw = offsetMeters({ latitude: south, longitude: west }, -paddingMeters, -paddingMeters);
+  return { north: ne.latitude, south: sw.latitude, east: ne.longitude, west: sw.longitude };
+}

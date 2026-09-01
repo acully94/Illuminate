@@ -1,3 +1,3 @@
 export { buildScoredRoutes } from './buildScoredRoutes';
-export { enrichRoute } from './enrichRoute';
+export { computeMidpoints } from './enrichRoute';
 export { scoreSegments } from './scoreRoute';
