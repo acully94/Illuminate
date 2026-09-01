@@ -7,6 +7,7 @@ import { ScoreBadge } from '@/components/ScoreBadge';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { useScoredRoutes } from '@/hooks/useScoredRoutes';
 import { exportRouteAsGpx } from '@/modules/gpx';
+import { useSavedRoutes } from '@/modules/savedRoutes';
 import { useSettings } from '@/modules/settings';
 import type { RouteMode, RouteRequest } from '@/types/route';
 import { formatDistance, formatDuration, paceDurationSeconds } from '@/utils/format';
@@ -28,6 +29,7 @@ export default function RouteDetail() {
     destLng?: string;
   }>();
   const { settings } = useSettings();
+  const { saveRoute } = useSavedRoutes();
   const [exporting, setExporting] = useState(false);
 
   const origin = { latitude: Number(params.lat), longitude: Number(params.lng) };
@@ -76,6 +78,11 @@ export default function RouteDetail() {
     }
   }
 
+  function handleSave() {
+    saveRoute(route, `${MODE_LABELS[params.mode]} route · ${distance}`);
+    Alert.alert('Saved', 'This route has been added to My Routes.');
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScreenHeader title={`${MODE_LABELS[params.mode]} route`} />
@@ -86,8 +93,12 @@ export default function RouteDetail() {
           Walking {walking} · Running {running}
         </Text>
         <ScoreBadge score={route.score} />
+        <Pressable style={styles.secondaryCta} onPress={handleSave}>
+          <Text style={styles.secondaryCtaText}>Save route</Text>
+        </Pressable>
         <Text style={styles.exportHint}>
-          Export this route as a GPX file, then import it into Strava, Runna, or your running app.
+          Export this route as a GPX file, then import it into Strava, Runna, or your running app —
+          or share it straight to a friend from the share sheet.
         </Text>
         <Pressable style={styles.cta} onPress={handleExport} disabled={exporting}>
           <Text style={styles.ctaText}>{exporting ? 'Preparing…' : 'Export route (GPX)'}</Text>
@@ -123,6 +134,19 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#666',
     marginTop: 8,
+  },
+  secondaryCta: {
+    marginTop: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#1B3A5C',
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  secondaryCtaText: {
+    color: '#1B3A5C',
+    fontWeight: '700',
+    fontSize: 15,
   },
   cta: {
     marginTop: 4,

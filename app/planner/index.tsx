@@ -1,12 +1,14 @@
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { DistancePicker } from '@/components/DistancePicker';
+import { KeyboardDoneBar } from '@/components/KeyboardDoneBar';
+import { PlaceAutocomplete } from '@/components/PlaceAutocomplete';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { DEFAULT_ORIGIN, isInsideLaunchRegion } from '@/modules/config/appConfig';
-import { mockGeocode } from '@/modules/geocoding';
+import type { GeocodeResult } from '@/modules/geocoding';
 import { useSettings } from '@/modules/settings';
 import type { LatLng } from '@/types/route';
 
@@ -23,7 +25,6 @@ export default function Planner() {
 
   const [endPoint, setEndPoint] = useState<LatLng | null>(null);
   const [endText, setEndText] = useState('');
-  const [endError, setEndError] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -40,32 +41,18 @@ export default function Planner() {
     })();
   }, []);
 
-  function resolveStart(text: string) {
-    setStartText(text);
-    if (text === 'Your current location') return;
-    const result = mockGeocode(text);
-    if (result) setStartPoint(result.point);
+  function handleSelectStart(result: GeocodeResult) {
+    setStartPoint(result.point);
+    setStartText(result.label);
   }
 
-  function resolveEnd(text: string) {
-    setEndText(text);
-    if (!text.trim()) {
-      setEndPoint(null);
-      setEndError(false);
-      return;
-    }
-    const result = mockGeocode(text);
-    if (result) {
-      setEndPoint(result.point);
-      setEndError(false);
-    } else {
-      setEndPoint(null);
-      setEndError(true);
-    }
+  function handleSelectEnd(result: GeocodeResult) {
+    setEndPoint(result.point);
+    setEndText(result.label);
   }
 
   const outsideRegion = !isInsideLaunchRegion(startPoint);
-  const canFindRoutes = mode === 'loop' || (endPoint !== null && !endError);
+  const canFindRoutes = mode === 'loop' || endPoint !== null;
 
   function findRoutes() {
     if (mode === 'loop') {
@@ -95,72 +82,63 @@ export default function Planner() {
   return (
     <SafeAreaView style={styles.container}>
       <ScreenHeader title="Plan a route" />
-
-      <View style={styles.section}>
-        <Text style={styles.label}>Route type</Text>
-        <View style={styles.row}>
-          <Pressable
-            style={[styles.toggleOption, mode === 'loop' && styles.toggleOptionSelected]}
-            onPress={() => setMode('loop')}
-          >
-            <Text style={[styles.toggleText, mode === 'loop' && styles.toggleTextSelected]}>
-              Loop (back to start)
-            </Text>
-          </Pressable>
-          <Pressable
-            style={[styles.toggleOption, mode === 'point-to-point' && styles.toggleOptionSelected]}
-            onPress={() => setMode('point-to-point')}
-          >
-            <Text style={[styles.toggleText, mode === 'point-to-point' && styles.toggleTextSelected]}>
-              Point to point
-            </Text>
-          </Pressable>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <View style={styles.section}>
+          <Text style={styles.label}>Route type</Text>
+          <View style={styles.row}>
+            <Pressable
+              style={[styles.toggleOption, mode === 'loop' && styles.toggleOptionSelected]}
+              onPress={() => setMode('loop')}
+            >
+              <Text style={[styles.toggleText, mode === 'loop' && styles.toggleTextSelected]}>
+                Loop (back to start)
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[styles.toggleOption, mode === 'point-to-point' && styles.toggleOptionSelected]}
+              onPress={() => setMode('point-to-point')}
+            >
+              <Text style={[styles.toggleText, mode === 'point-to-point' && styles.toggleTextSelected]}>
+                Point to point
+              </Text>
+            </Pressable>
+          </View>
         </View>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={styles.label}>Starting point</Text>
-        <TextInput
-          style={styles.input}
-          value={startText}
-          onChangeText={resolveStart}
-          placeholder="Enter a starting point"
-        />
-        {outsideRegion && (
-          <Text style={styles.warning}>
-            Illuminate currently only has good data coverage inside the M25 — routes outside this
-            area may have limited lighting and crime data.
-          </Text>
+        <View style={styles.section}>
+          <Text style={styles.label}>Starting point</Text>
+          <PlaceAutocomplete value={startText} onSelect={handleSelectStart} placeholder="Postcode, address, or landmark" />
+          {outsideRegion && (
+            <Text style={styles.warning}>
+              Illuminate currently only has good data coverage inside the M25 — routes outside this
+              area may have limited lighting and crime data.
+            </Text>
+          )}
+        </View>
+
+        {mode === 'point-to-point' && (
+          <View style={styles.section}>
+            <Text style={styles.label}>End point</Text>
+            <PlaceAutocomplete value={endText} onSelect={handleSelectEnd} placeholder="Postcode, address, or landmark" />
+          </View>
         )}
-      </View>
 
-      {mode === 'point-to-point' && (
-        <View style={styles.section}>
-          <Text style={styles.label}>End point</Text>
-          <TextInput
-            style={styles.input}
-            value={endText}
-            onChangeText={resolveEnd}
-            placeholder="Enter an end point"
-          />
-          {endError && <Text style={styles.warning}>Couldn't match that end point — try a nearby landmark.</Text>}
-        </View>
-      )}
+        {mode === 'loop' && (
+          <View style={styles.section}>
+            <Text style={styles.label}>Distance</Text>
+            <DistancePicker valueMeters={distanceMeters} unit={settings.unit} onChange={setDistanceMeters} />
+          </View>
+        )}
 
-      {mode === 'loop' && (
-        <View style={styles.section}>
-          <Text style={styles.label}>Distance</Text>
-          <DistancePicker valueMeters={distanceMeters} unit={settings.unit} onChange={setDistanceMeters} />
-        </View>
-      )}
-
-      <Pressable
-        style={[styles.cta, !canFindRoutes && styles.ctaDisabled]}
-        onPress={findRoutes}
-        disabled={!canFindRoutes}
-      >
-        <Text style={styles.ctaText}>Find routes</Text>
-      </Pressable>
+        <Pressable
+          style={[styles.cta, !canFindRoutes && styles.ctaDisabled]}
+          onPress={findRoutes}
+          disabled={!canFindRoutes}
+        >
+          <Text style={styles.ctaText}>Find routes</Text>
+        </Pressable>
+      </ScrollView>
+      <KeyboardDoneBar />
     </SafeAreaView>
   );
 }
@@ -169,6 +147,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  content: {
     padding: 24,
     gap: 24,
   },
@@ -205,21 +185,12 @@ const styles = StyleSheet.create({
   toggleTextSelected: {
     color: '#fff',
   },
-  input: {
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E2E2E2',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: '#222',
-  },
   warning: {
     fontSize: 13,
     color: '#8A6D00',
   },
   cta: {
-    marginTop: 'auto',
+    marginTop: 8,
     backgroundColor: '#1B3A5C',
     borderRadius: 12,
     paddingVertical: 16,

@@ -21,14 +21,18 @@ export type RouteSegment = {
 };
 
 export type RouteScoreBreakdown = {
-  /** 0-100. Share of the route's distance covered by segments with known lit=true. */
-  litCoveragePercent: number;
-  /** 0-100. Share of the route's distance with no lighting data at all. */
+  /**
+   * 0-100. Share of the route's *known-lighting* distance (lit=true or lit=false
+   * segments only) that's lit — segments with no data are excluded from this, not
+   * treated as unlit. Null when there's no lighting data for any part of the route.
+   */
+  litCoveragePercent: number | null;
+  /** 0-100. Share of the route's distance with no lighting data at all — the honest "we don't know" signal. */
   unknownLightingPercent: number;
   /** 0-100, higher is safer. Null when the route falls entirely outside crime-data coverage. */
   crimeScore: number | null;
-  /** 0-100 composite safety score. Only as trustworthy as the inputs above. */
-  safetyScore: number;
+  /** 0-100 composite safety score. Null only when neither lighting nor crime data exists for this route at all. */
+  safetyScore: number | null;
 };
 
 export type ScoredRoute = {

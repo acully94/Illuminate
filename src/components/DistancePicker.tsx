@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Keyboard, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KEYBOARD_DONE_ID } from './KeyboardDoneBar';
 import { DISTANCE_OPTIONS_METERS } from '@/modules/config/appConfig';
 import type { DistanceUnit } from '@/modules/settings/types';
 import { metersToDisplayDistance } from '@/utils/format';
@@ -71,6 +72,9 @@ export function DistancePicker({
           value={customText}
           onChangeText={selectCustom}
           onFocus={() => customText && selectCustom(customText)}
+          returnKeyType="done"
+          onSubmitEditing={() => Keyboard.dismiss()}
+          inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_DONE_ID : undefined}
         />
       </View>
     </View>

@@ -8,6 +8,17 @@ function colorForScore(score: number): string {
 }
 
 export function ScoreBadge({ score }: { score: RouteScoreBreakdown }) {
+  if (score.safetyScore === null) {
+    return (
+      <View style={styles.container}>
+        <View style={[styles.pill, styles.pillUnknown]}>
+          <Text style={styles.pillText}>No data</Text>
+        </View>
+        <Text style={styles.warning}>No lighting or crime data available for this route</Text>
+      </View>
+    );
+  }
+
   const color = colorForScore(score.safetyScore);
 
   return (
@@ -36,6 +47,9 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 4,
+  },
+  pillUnknown: {
+    backgroundColor: '#999999',
   },
   pillText: {
     color: '#fff',

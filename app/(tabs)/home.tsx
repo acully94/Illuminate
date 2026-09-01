@@ -7,9 +7,14 @@ export default function Home() {
     <SafeAreaView style={styles.container}>
       <View style={styles.topRow}>
         <Text style={styles.greeting}>Where do you want to go?</Text>
-        <Pressable style={styles.settingsButton} onPress={() => router.push('/settings')}>
-          <Text style={styles.settingsButtonText}>Settings</Text>
-        </Pressable>
+        <View style={styles.topButtons}>
+          <Pressable style={styles.pillButton} onPress={() => router.push('/saved')}>
+            <Text style={styles.pillButtonText}>My routes</Text>
+          </Pressable>
+          <Pressable style={styles.pillButton} onPress={() => router.push('/settings')}>
+            <Text style={styles.pillButtonText}>Settings</Text>
+          </Pressable>
+        </View>
       </View>
       <Text style={styles.subtitle}>
         Plan a walking or running route scored for lighting and area safety, using the data
@@ -42,14 +47,17 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#1B3A5C',
   },
-  settingsButton: {
+  topButtons: {
+    gap: 8,
+  },
+  pillButton: {
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
     borderWidth: 1,
     borderColor: '#E2E2E2',
   },
-  settingsButtonText: {
+  pillButtonText: {
     color: '#1B3A5C',
     fontWeight: '600',
     fontSize: 13,

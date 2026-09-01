@@ -68,7 +68,13 @@ export async function buildScoredRoutes(request: RouteRequest): Promise<Record<R
   const fastest = scored.reduce((best, r) =>
     r.durationSeconds < best.durationSeconds ? r : best,
   );
-  const safest = scored.reduce((best, r) => (r.score.safetyScore > best.score.safetyScore ? r : best));
+  // Null safetyScore (no data at all) ranks below any real score for this internal
+  // pick — it's never shown to the user as a number, just used to prefer a route we
+  // have *some* safety signal for over one we know nothing about.
+  const safetyRank = (score: number | null) => score ?? -1;
+  const safest = scored.reduce((best, r) =>
+    safetyRank(r.score.safetyScore) > safetyRank(best.score.safetyScore) ? r : best,
+  );
   const balanced =
     scored.find((r) => r.id !== fastest.id && r.id !== safest.id) ?? scored[0];
 

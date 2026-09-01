@@ -1,7 +1,8 @@
 import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Keyboard, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KEYBOARD_DONE_ID, KeyboardDoneBar } from '@/components/KeyboardDoneBar';
 import { useSettings } from '@/modules/settings';
 import type { DistanceUnit } from '@/modules/settings/types';
 import { secondsPerKmToUnitPace, unitPaceToSecondsPerKm } from '@/utils/format';
@@ -77,6 +78,9 @@ export default function Settings() {
             value={walkMin}
             onChangeText={setWalkMin}
             onBlur={() => commitWalkingPace(walkMin, walkSec)}
+            returnKeyType="done"
+            onSubmitEditing={() => Keyboard.dismiss()}
+            inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_DONE_ID : undefined}
           />
           <Text style={styles.paceColon}>:</Text>
           <TextInput
@@ -85,6 +89,9 @@ export default function Settings() {
             value={walkSec}
             onChangeText={setWalkSec}
             onBlur={() => commitWalkingPace(walkMin, walkSec)}
+            returnKeyType="done"
+            onSubmitEditing={() => Keyboard.dismiss()}
+            inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_DONE_ID : undefined}
           />
         </View>
       </View>
@@ -101,6 +108,9 @@ export default function Settings() {
             value={runMin}
             onChangeText={setRunMin}
             onBlur={() => commitRunningPace(runMin, runSec)}
+            returnKeyType="done"
+            onSubmitEditing={() => Keyboard.dismiss()}
+            inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_DONE_ID : undefined}
           />
           <Text style={styles.paceColon}>:</Text>
           <TextInput
@@ -109,12 +119,16 @@ export default function Settings() {
             value={runSec}
             onChangeText={setRunSec}
             onBlur={() => commitRunningPace(runMin, runSec)}
+            returnKeyType="done"
+            onSubmitEditing={() => Keyboard.dismiss()}
+            inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_DONE_ID : undefined}
           />
         </View>
         <Text style={styles.example}>
           At this pace, a {exampleDistance} {settings.unit} run takes about {exampleMinutes} min.
         </Text>
       </View>
+      <KeyboardDoneBar />
     </SafeAreaView>
   );
 }

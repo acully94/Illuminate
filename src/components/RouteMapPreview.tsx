@@ -32,6 +32,25 @@ function toColoredPolylines(segments: RouteSegment[]): { id: string; color: stri
   return polylines;
 }
 
+function Legend() {
+  return (
+    <View style={styles.legend}>
+      <View style={styles.legendItem}>
+        <View style={[styles.legendSwatch, { backgroundColor: SEGMENT_COLORS.lit }]} />
+        <Text style={styles.legendText}>Lit</Text>
+      </View>
+      <View style={styles.legendItem}>
+        <View style={[styles.legendSwatch, { backgroundColor: SEGMENT_COLORS.unlit }]} />
+        <Text style={styles.legendText}>Unlit</Text>
+      </View>
+      <View style={styles.legendItem}>
+        <View style={[styles.legendSwatch, { backgroundColor: SEGMENT_COLORS.unknown }]} />
+        <Text style={styles.legendText}>Unknown</Text>
+      </View>
+    </View>
+  );
+}
+
 export function RouteMapPreview({ origin, segments }: { origin: LatLng; segments: RouteSegment[] }) {
   if (Platform.OS === 'web') {
     // react-native-maps has no web target — map rendering SDK for web is still open (Section 7).
@@ -47,24 +66,27 @@ export function RouteMapPreview({ origin, segments }: { origin: LatLng; segments
   const polylines = toColoredPolylines(segments);
 
   return (
-    <MapView
-      style={styles.map}
-      initialRegion={{
-        latitude: origin.latitude,
-        longitude: origin.longitude,
-        latitudeDelta: 0.02,
-        longitudeDelta: 0.02,
-      }}
-    >
-      {polylines.map((polyline) => (
-        <Polyline
-          key={polyline.id}
-          coordinates={polyline.path}
-          strokeColor={polyline.color}
-          strokeWidth={4}
-        />
-      ))}
-    </MapView>
+    <View>
+      <MapView
+        style={styles.map}
+        initialRegion={{
+          latitude: origin.latitude,
+          longitude: origin.longitude,
+          latitudeDelta: 0.02,
+          longitudeDelta: 0.02,
+        }}
+      >
+        {polylines.map((polyline) => (
+          <Polyline
+            key={polyline.id}
+            coordinates={polyline.path}
+            strokeColor={polyline.color}
+            strokeWidth={4}
+          />
+        ))}
+      </MapView>
+      <Legend />
+    </View>
   );
 }
 
@@ -82,5 +104,24 @@ const styles = StyleSheet.create({
   },
   webFallbackText: {
     color: '#666',
+  },
+  legend: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: 10,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  legendSwatch: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  legendText: {
+    fontSize: 12,
+    color: '#555',
   },
 });
